@@ -300,6 +300,7 @@ local optim_state = {learningRate = opt.learning_rate, alpha = opt.decay_rate}
 local iterations = opt.max_epochs * loader.ntrain
 local iterations_per_epoch = loader.ntrain
 local loss0 = nil
+local time_since_last_estimate = 0
 for i = 1, iterations do
     local epoch = i / loader.ntrain
 
@@ -347,10 +348,16 @@ for i = 1, iterations do
         torch.save(savefile, checkpoint)
     end
 
+    time_since_last_estimate = time_since_last_estimate + time
     if i % opt.print_every == 0 then
         print(string.format("%d/%d (epoch %.3f), train_loss = %6.8f, grad/param norm = %6.4e, time/batch = %.4fs", i, iterations, epoch, train_loss, grad_params:norm() / params:norm(), time))
+        if i % (10*opt.print_every) == 0 then
+          local estimate = (iterations - i) * time_since_last_estimate / (10*opt.print_every)
+          print(string.format("Time remaining: %.1f min", estimate/60))
+          time_since_last_estimate = 0
+        end
     end
-   
+
     if i % 10 == 0 then collectgarbage() end
 
     -- handle early stopping if things are going really bad
