@@ -58,6 +58,7 @@ cmd:option('-print_every',1,'how many steps/minibatches between printing out the
 cmd:option('-eval_val_every',1000,'every how many iterations should we evaluate on validation data?')
 cmd:option('-checkpoint_dir', 'cv', 'output directory where checkpoints get written')
 cmd:option('-auto_subdir', 1, 'automatically create a subdirectory for checkpoints for each run')
+cmd:option('-dump_options', 1, 'dump training options in checkpoint_dir/options.json')
 cmd:option('-savefile','lstm','filename to autosave the checkpont to. Will be inside checkpoint_dir/')
 cmd:option('-accurate_gpu_timing',0,'set this flag to 1 to get precise timings when using GPU. Might make code bit slower but reports accurate timings.')
 -- GPU/CPU
@@ -138,6 +139,15 @@ if opt.auto_subdir then
 
   opt.checkpoint_dir = path.join(opt.checkpoint_dir, tostring(fd_id))
   lfs.mkdir(opt.checkpoint_dir)
+end
+-- dump run options to a file
+if opt.dump_options then
+  local opt_file = path.join(opt.checkpoint_dir, 'options.json')
+  local f = assert(io.open(opt_file, "a"))
+  local cjson = require "cjson"
+  f:write(cjson.encode(opt))
+  f:write("\n")
+  f:close()
 end
 
 -- define the model: prototypes for one timestep, then clone them in time
