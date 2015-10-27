@@ -57,6 +57,7 @@ cmd:option('-seed',123,'torch manual random number generator seed')
 cmd:option('-print_every',1,'how many steps/minibatches between printing out the loss')
 cmd:option('-eval_val_every',1000,'every how many iterations should we evaluate on validation data?')
 cmd:option('-checkpoint_dir', 'cv', 'output directory where checkpoints get written')
+cmd:option('-auto_subdir', 1, 'automatically create a subdirectory for checkpoints for each run')
 cmd:option('-savefile','lstm','filename to autosave the checkpont to. Will be inside checkpoint_dir/')
 cmd:option('-accurate_gpu_timing',0,'set this flag to 1 to get precise timings when using GPU. Might make code bit slower but reports accurate timings.')
 -- GPU/CPU
@@ -112,8 +113,32 @@ local loader = CharSplitLMMinibatchLoader.create(opt.data_dir, opt.batch_size, o
 local vocab_size = loader.vocab_size  -- the number of distinct characters
 local vocab = loader.vocab_mapping
 print('vocab size: ' .. vocab_size)
+
 -- make sure output directory exists
 if not path.exists(opt.checkpoint_dir) then lfs.mkdir(opt.checkpoint_dir) end
+-- create a new subdirectory for this run
+if opt.auto_subdir then
+  local count_file = path.join(opt.checkpoint_dir, 'last_id')
+  local f = io.open(count_file, "r")
+  local fd_id
+  if f then
+    fd_id = 1 + tonumber(f:read("*all"))
+    f:close()
+  else
+    fd_id = 0
+  end
+
+  while path.exists(path.join(opt.checkpoint_dir, tostring(fd_id))) do
+    fd_id = fd_id + 1
+  end
+
+  local f = io.open(count_file, "w")
+  f:write(fd_id)
+  f:close()
+
+  opt.checkpoint_dir = path.join(opt.checkpoint_dir, tostring(fd_id))
+  lfs.mkdir(opt.checkpoint_dir)
+end
 
 -- define the model: prototypes for one timestep, then clone them in time
 local do_random_init = true
