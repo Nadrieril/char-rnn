@@ -3,7 +3,7 @@
 
 This file samples characters from a trained model
 
-Code is based on implementation in 
+Code is based on implementation in
 https://github.com/oxford-cs-ml-2015/practical6
 
 ]]--
@@ -158,4 +158,3 @@ for i=1, opt.length do
     io.write(ivocab[prev_char[1]])
 end
 io.write('\n') io.flush()
-

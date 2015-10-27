@@ -3,11 +3,11 @@
 
 This file trains a character-level multi-layer RNN on text data
 
-Code is based on implementation in 
+Code is based on implementation in
 https://github.com/oxford-cs-ml-2015/practical6
 but modified to have multi-layer support, GPU support, as well as
 many other common model/optimization bells and whistles.
-The practical6 code is in turn based on 
+The practical6 code is in turn based on
 https://github.com/wojciechz/learning_to_execute
 which is turn based on other stuff in Torch, etc... (long lineage)
 
@@ -70,7 +70,7 @@ opt = cmd:parse(arg)
 torch.manualSeed(opt.seed)
 -- train / val / test split for data, in fractions
 local test_frac = math.max(0, 1 - (opt.train_frac + opt.val_frac))
-local split_sizes = {opt.train_frac, opt.val_frac, test_frac} 
+local split_sizes = {opt.train_frac, opt.val_frac, test_frac}
 
 -- initialize cunn/cutorch for training on the GPU and fall back to CPU gracefully
 if opt.gpuid >= 0 and opt.opencl == 0 then
@@ -148,8 +148,8 @@ if string.len(opt.init_from) > 0 then
     protos = checkpoint.protos
     -- make sure the vocabs are the same
     local vocab_compatible = true
-    for c,i in pairs(checkpoint.vocab) do 
-        if not vocab[c] == i then 
+    for c,i in pairs(checkpoint.vocab) do
+        if not vocab[c] == i then
             vocab_compatible = false
         end
     end
@@ -245,7 +245,7 @@ function eval_split(split_index, max_batches)
     loader:reset_batch_pointer(split_index) -- move batch iteration pointer for this split to front
     local loss = 0
     local rnn_state = {[0] = init_state}
-    
+
     for i = 1,n do -- iterate over batches in the split
         -- fetch a batch
         local x, y = loader:next_batch(split_index)
@@ -256,7 +256,7 @@ function eval_split(split_index, max_batches)
             local lst = clones.rnn[t]:forward{x[t], unpack(rnn_state[t-1])}
             rnn_state[t] = {}
             for i=1,#init_state do table.insert(rnn_state[t], lst[i]) end
-            prediction = lst[#lst] 
+            prediction = lst[#lst]
             loss = loss + clones.criterion[t]:forward(prediction, y[t])
         end
         -- carry over lstm state
@@ -303,7 +303,7 @@ function feval(x)
         drnn_state[t-1] = {}
         for k,v in pairs(dlst) do
             if k > 1 then -- k == 1 is gradient on x, which we dont need
-                -- note we do k-1 because first item is dembeddings, and then follow the 
+                -- note we do k-1 because first item is dembeddings, and then follow the
                 -- derivatives of the state, starting at index 2. I know...
                 drnn_state[t-1][k-1] = v
             end
@@ -340,7 +340,7 @@ for i = 1, iterations do
         cutorch.synchronize()
     end
     local time = timer:time().real
-    
+
     local train_loss = loss[1] -- the loss is inside a list, pop it
     train_losses[i] = train_loss
 
@@ -396,5 +396,3 @@ for i = 1, iterations do
         break -- halt
     end
 end
-
-
